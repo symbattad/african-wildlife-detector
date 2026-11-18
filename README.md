@@ -237,29 +237,6 @@ validation would mean the choice had been overfitted to the validation set.
 
 ![predictions on test photos](assets/test_predictions.png)
 
-### Test — used once
-
-Evaluated with the single checkpoint chosen on validation, after both runs
-finished. No setting was changed afterwards.
-
-Evaluation settings: `conf = 0.001`, `IoU = 0.6` for the metrics (standard for
-mAP, so low-confidence predictions still shape the precision-recall curve);
-`conf = 0.25` for the pictures and the failure analysis.
-
-| metric | value |
-|---|---|
-| precision | |
-| recall | |
-| mAP@0.50 | |
-| mAP@0.50-0.95 | |
-
-| class | precision | recall | mAP@0.50 |
-|---|---|---|---|
-| buffalo | | | |
-| elephant | | | |
-| rhino | | | |
-| zebra | | | |
-
 **What these metrics measure.** *Precision* — of everything the model called an
 animal, how much really was one. *Recall* — of all the animals present, how many
 it found. *mAP@0.50* — the area under the precision-recall curve averaged over
@@ -267,10 +244,8 @@ the four classes, counting a box as correct when it covers at least 50% of the
 true box (IoU ≥ 0.50). *mAP@0.50-0.95* averages that over IoU thresholds from
 0.50 to 0.95, so it also rewards tight boxes.
 
-**Trained checkpoint:** _paste your download link here._ Upload
-`results/best_<chosen run>.pt` (the notebook copies it out of `runs/`) to Google
-Drive, set it to "anyone with the link can view", and put the link here. The
-file is about 5 MB.
+**Trained checkpoint (`best_run1_mosaic_on.pt`, 5.2 MB):**
+_paste your Google Drive link here._
 
 ---
 
