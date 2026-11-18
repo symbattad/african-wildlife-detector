@@ -244,8 +244,9 @@ the four classes, counting a box as correct when it covers at least 50% of the
 true box (IoU ≥ 0.50). *mAP@0.50-0.95* averages that over IoU thresholds from
 0.50 to 0.95, so it also rewards tight boxes.
 
-**Trained checkpoint (`best_run1_mosaic_on.pt`, 5.2 MB):**
-_paste your Google Drive link here._
+**Trained checkpoint:** [`best_run1_mosaic_on.pt`](https://drive.google.com/file/d/1-0I1YMu8Krp0bX01i5Snmc9piiXZilwQ/view?usp=sharing) (5.2 MB, Google Drive, anyone with the link can view).
+This is the `run1_mosaic_on` checkpoint — the run chosen on validation and the
+one the test numbers above come from.
 
 ---
 
