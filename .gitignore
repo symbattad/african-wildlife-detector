@@ -1,0 +1,9 @@
+african-wildlife/
+african-wildlife.zip
+runs/
+wildlife_evidence.zip
+lists/
+*.pt
+!assets/*.png
+__pycache__/
+.ipynb_checkpoints/
