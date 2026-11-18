@@ -3,10 +3,9 @@
 Object detection on photos of African animals: **buffalo, elephant, rhino,
 zebra**.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/USER/REPO/blob/main/notebooks/wildlife_detection.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/symbattad/african-wildlife-detector/blob/main/notebooks/wildlife_detection.ipynb)
 
-> Replace `USER/REPO` in the badge with your GitHub username and repository
-> name after you push this repo.
+
 
 Everything — download, the label checks, both training runs, evaluation and the
 failure analysis — runs top to bottom in `notebooks/wildlife_detection.ipynb`
