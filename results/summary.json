@@ -1,0 +1,117 @@
+{
+  "dataset": "African Wildlife (Ultralytics), AGPL-3.0, 1504 photos, 4 classes",
+  "split_original": {
+    "train": 1052,
+    "val": 225,
+    "test": 227
+  },
+  "split_used": {
+    "train": 1018,
+    "val": 225,
+    "test": 225
+  },
+  "removed_duplicates": 36,
+  "near_duplicate_pairs": 75,
+  "near_duplicate_pairs_crossing_splits": 37,
+  "framework": "ultralytics 8.4.215, torch 2.14.1+cu130",
+  "model": "yolo11n.pt",
+  "epochs": 50,
+  "batch": 16,
+  "imgsz": 640,
+  "lr0": 0.01,
+  "optimizer": "SGD",
+  "seed": 0,
+  "eval": {
+    "conf": 0.001,
+    "iou": 0.6,
+    "picture_conf": 0.25
+  },
+  "run1_mosaic_on": {
+    "mosaic": 1.0,
+    "minutes": 14.7,
+    "val": {
+      "precision": 0.9433,
+      "recall": 0.891,
+      "mAP50": 0.9536,
+      "mAP50-95": 0.7941,
+      "buffalo precision": 0.9434,
+      "buffalo recall": 0.8539,
+      "buffalo mAP50": 0.965,
+      "elephant precision": 0.9078,
+      "elephant recall": 0.8653,
+      "elephant mAP50": 0.9326,
+      "rhino precision": 0.9602,
+      "rhino recall": 0.9647,
+      "rhino mAP50": 0.9639,
+      "zebra precision": 0.9617,
+      "zebra recall": 0.8801,
+      "zebra mAP50": 0.953
+    }
+  },
+  "run2_mosaic_off": {
+    "mosaic": 0.0,
+    "minutes": 13.9,
+    "val": {
+      "precision": 0.931,
+      "recall": 0.8868,
+      "mAP50": 0.9427,
+      "mAP50-95": 0.7888,
+      "buffalo precision": 0.981,
+      "buffalo recall": 0.8989,
+      "buffalo mAP50": 0.9595,
+      "elephant precision": 0.8874,
+      "elephant recall": 0.8352,
+      "elephant mAP50": 0.9207,
+      "rhino precision": 0.9301,
+      "rhino recall": 0.9395,
+      "rhino mAP50": 0.965,
+      "zebra precision": 0.9256,
+      "zebra recall": 0.8736,
+      "zebra mAP50": 0.9255
+    }
+  },
+  "chosen": "run1_mosaic_on",
+  "test": {
+    "precision": 0.9672,
+    "recall": 0.9484,
+    "mAP50": 0.9758,
+    "mAP50-95": 0.8393,
+    "buffalo precision": 0.974,
+    "buffalo recall": 0.9545,
+    "buffalo mAP50": 0.9588,
+    "elephant precision": 0.9549,
+    "elephant recall": 0.9394,
+    "elephant mAP50": 0.9815,
+    "rhino precision": 0.981,
+    "rhino recall": 0.9595,
+    "rhino mAP50": 0.9893,
+    "zebra precision": 0.959,
+    "zebra recall": 0.9403,
+    "zebra mAP50": 0.9734
+  },
+  "errors": {
+    "missed": {
+      "buffalo": 3,
+      "elephant": 4,
+      "rhino": 2,
+      "zebra": 7
+    },
+    "extra": {
+      "buffalo": 4,
+      "rhino": 2,
+      "elephant": 9,
+      "zebra": 14
+    },
+    "extra_reasons": {
+      "box in the wrong place": 7,
+      "nothing is there": 11,
+      "an animal of another class": 3,
+      "the same animal drawn twice": 8
+    },
+    "confused_pairs": {
+      "buffalo -> rhino": 1,
+      "rhino -> elephant": 1,
+      "rhino -> buffalo": 1
+    }
+  }
+}

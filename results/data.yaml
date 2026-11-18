@@ -1,0 +1,6 @@
+path: /content
+train: /content/lists/train.txt
+val: /content/lists/val.txt
+test: /content/lists/test.txt
+nc: 4
+names: ['buffalo', 'elephant', 'rhino', 'zebra']

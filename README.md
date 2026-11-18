@@ -5,8 +5,6 @@ zebra**.
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/symbattad/african-wildlife-detector/blob/main/notebooks/wildlife_detection.ipynb)
 
-
-
 Everything — download, the label checks, both training runs, evaluation and the
 failure analysis — runs top to bottom in `notebooks/wildlife_detection.ipynb`
 from a fresh Colab runtime on a free T4 GPU. After every part a short cell
@@ -91,6 +89,14 @@ Result: **36 photos removed**, split goes from 1052/225/227 to
 Duplicates inside one split are left alone — the task only asks for copies to
 stay on the same side.
 
+The split actually used for training and evaluation:
+
+| Split | Photos | Animals | buffalo | elephant | rhino | zebra |
+|---|---|---|---|---|---|---|
+| train | 1018 | 1878 | 376 | 551 | 388 | 563 |
+| val | 225 | 379 | 89 | 91 | 85 | 114 |
+| test | 225 | 373 | 66 | 99 | 74 | 134 |
+
 The notebook does not copy 1500 files to apply this. It writes
 `lists/{train,val,test}.txt` with the photos it keeps and points `data.yaml` at
 those lists.
@@ -161,26 +167,75 @@ mean the model needs the extra variety more than it needs realistic pictures.
 
 ## 3. Results
 
-> **Fill this in after running the notebook.** The last cells write
-> `results/summary.json` with exactly these numbers.
+Run on a free Colab T4. Every number below is from `results/summary.json`,
+written by the notebook itself.
 
 ### Validation — this is what chooses the final model
 
 | run | mosaic | precision | recall | mAP@0.50 | mAP@0.50-0.95 | training time |
 |---|---|---|---|---|---|---|
-| run 1 | 1.0 | | | | | |
-| run 2 | 0.0 | | | | | |
+| run 1 | 1.0 (on) | 0.943 | 0.891 | **0.954** | 0.794 | 14.7 min |
+| run 2 | 0.0 (off) | 0.931 | 0.887 | 0.943 | 0.789 | 13.9 min |
 
 Per class mAP@0.50:
 
-| class | mosaic on | mosaic off | change |
+| class | mosaic on | mosaic off | change without mosaic |
 |---|---|---|---|
-| buffalo | | | |
-| elephant | | | |
-| rhino | | | |
-| zebra | | | |
+| buffalo | 0.965 | 0.960 | −0.006 |
+| elephant | 0.933 | 0.921 | −0.012 |
+| rhino | 0.964 | 0.965 | +0.001 |
+| zebra | 0.953 | 0.926 | **−0.028** |
 
-Hypothesis confirmed / rejected, and why: _fill in_
+**Hypothesis: rejected.** We predicted that turning mosaic off would not hurt
+and might help, because the animals are large and most photos contain one
+animal. The opposite happened, although only slightly: mosaic **on** is better
+by 0.011 mAP@0.50. The time argument was wrong too — mosaic cost only 0.8
+minutes over 50 epochs, not a meaningful amount.
+
+Two honest caveats before reading anything into this. The gap is about one
+point of mAP on a 225-photo validation set with a single seed, which is the
+size of difference that run-to-run noise can produce. And both runs land above
+0.94, so the experiment is comparing two already-good models.
+
+**The per-class pattern is the interesting part.** Without mosaic the loss is
+not spread evenly: zebra loses 0.028 and elephant 0.012, while rhino does not
+move at all. Those are exactly the classes that appear in crowded photos —
+measured on the training set, 10% of elephant photos and 6% of zebra photos
+contain 5 or more animals, against 3% for buffalo and 0% for rhino. Mosaic
+glues four photos together, which is the only time the model sees many animals
+at once, so the classes that need that are the ones that lose when it is gone.
+This is a pattern consistent with the measurements, not a proven mechanism —
+confirming it would need the seed repetition listed in section 5.
+
+### Test — used once
+
+Evaluated with `run1_mosaic_on`, the checkpoint chosen on validation, after
+both runs finished. No setting was changed afterwards.
+
+Evaluation settings: `conf = 0.001`, `IoU = 0.6` for the metrics (standard for
+mAP, so low-confidence predictions still shape the precision-recall curve);
+`conf = 0.25` for the pictures and the failure analysis.
+
+| metric | value |
+|---|---|
+| precision | 0.967 |
+| recall | 0.948 |
+| **mAP@0.50** | **0.976** |
+| mAP@0.50-0.95 | 0.839 |
+
+| class | precision | recall | mAP@0.50 |
+|---|---|---|---|
+| buffalo | 0.974 | 0.955 | 0.959 |
+| elephant | 0.955 | 0.939 | 0.982 |
+| rhino | 0.981 | 0.960 | 0.989 |
+| zebra | 0.959 | 0.940 | 0.973 |
+
+Test mAP@0.50 (0.976) is slightly **above** validation (0.954). That is normal
+with 225 photos per split — the two sets are not identical in difficulty — and
+it is the right direction to be surprised about: a test score far below
+validation would mean the choice had been overfitted to the validation set.
+
+![predictions on test photos](assets/test_predictions.png)
 
 ### Test — used once
 
@@ -235,28 +290,63 @@ The notebook also prints a confusion table (*which* animal gets called *what*),
 and shows one photo for each of three different failure types — not the three
 worst photos, which would all show the same problem.
 
-Fill the numbers in from `summary.json` (`errors.extra_reasons` and
-`errors.confused_pairs`).
+On the 225 test photos (373 animals) the chosen model makes **16 misses** and
+**29 extra boxes**:
 
-**Case 1 — missed animals.** The photos with misses are the crowded ones: a
-herd, where animals stand behind each other and overlap. The median photo has
-one animal, so the model rarely trains on a herd and learns "one big animal per
-photo".
+| class | real | missed | extra |
+|---|---|---|---|
+| buffalo | 66 | 3 | 4 |
+| elephant | 99 | 4 | 9 |
+| rhino | 74 | 2 | 2 |
+| zebra | 134 | 7 | 14 |
 
-**Case 2 — extra boxes.** Two different things hide here, and the breakdown
-separates them: duplicate boxes on one animal, which is an NMS threshold
-problem, and boxes on background animals or on empty ground, which is not.
+Where the 29 extra boxes landed:
 
-**Case 3 — missed and extra in the same photo.** Usually one error, not two: the
-model found the animal but gave it the wrong name, so the true box counts as
-missed and the prediction counts as extra. The confusion table shows which pair
-of species this happens with.
+| reason | count | share |
+|---|---|---|
+| nothing is there | 11 | 38% |
+| the same animal drawn twice | 8 | 28% |
+| box in the wrong place | 7 | 24% |
+| an animal of another class | 3 | 10% |
 
-**One practical next step.** The cheapest improvement is not a bigger model: it
-is to re-run the predictions on the crowded photos with a higher NMS IoU and a
-higher confidence threshold and see how much of the error list disappears. Only
-what remains is a real model problem, and the answer to that would be more
-training photos containing several animals.
+Only 3 of 29 extra boxes are a species confusion, and all three involve the
+grey animals: buffalo→rhino, rhino→buffalo, rhino→elephant. Zebra is never
+confused with anything, which fits — its pattern is unlike any other class
+here.
+
+The two largest groups are *not* the same kind of problem. "The same animal
+drawn twice" (8) is an NMS threshold issue and costs nothing but a setting.
+"Nothing is there" (11) needs looking at: in case 2 below, those boxes sit on
+an adult elephant that is partly visible behind the labelled calf and simply
+has no box — the labelling convention from section 1.3, not a hallucination.
+
+![three failure cases](assets/failure_cases.png)
+
+**Case 1 — missed animals.** Two buffalo standing one behind the other, and
+the model returns a single box covering both (confidence 0.90). The median
+photo has one animal, so the model rarely trains on overlapping animals and
+tends to answer "one animal here".
+
+**Case 2 — extra boxes.** A labelled elephant calf, plus an adult elephant
+behind it that has no box. The model finds the adult at confidence 0.35 and
+0.29 and is punished for being right. This is the labelling convention of
+section 1.3 and the main source of the 11 "nothing is there" boxes.
+
+**Case 3 — missed and extra in the same photo.** A buffalo herd: the model
+finds three of them and labels the leftmost one `rhino 0.28`. That single error
+is counted twice — the true box as a miss, the prediction as an extra box. It
+is also the only kind of error that a confidence threshold alone would fix,
+since the wrong label carries 0.28 confidence against 0.94 and 0.71 for the
+correct ones.
+
+**One practical next step.** 19 of the 29 extra boxes are duplicates or boxes
+in the wrong place, and the species confusion carries low confidence. So the
+cheapest experiment is a sweep of the confidence and NMS-IoU thresholds **on
+validation**, then one re-measurement on test. That should remove most of the
+extra boxes without touching the model at all. Only what survives that is a
+real model problem, and the answer to it would be more training photos with
+several animals in one picture — which is also what the mosaic result in
+section 3 points at.
 
 ---
 
@@ -271,10 +361,13 @@ training photos containing several animals.
 * **The split originally leaked** and still contains 38 duplicate pairs *inside*
   single splits. Those do not leak between train and test, but they mean the
   effective number of distinct training photos is slightly below 1018.
-* **225 test photos** is small. Differences of 1–2 points of mAP should not be
-  read as real.
-* **One seed.** Both runs use `seed=0`, so a small gap between them could be
-  run-to-run noise rather than the effect of mosaic.
+* **225 test photos** is small, and 373 animals produce only 16 misses in
+  total, so each individual error moves the per-class recall by about a point.
+  Differences of 1–2 points of mAP should not be read as real.
+* **One seed.** Both runs use `seed=0`, and the gap between them is 0.011
+  mAP@0.50 — small enough that it could be run-to-run noise rather than the
+  effect of mosaic. The per-class pattern in section 3 is suggestive, but one
+  run cannot separate a real effect of this size from chance.
 * **Only four species, all large mammals.** Nothing here says how the model
   behaves on a species it has never seen, and it is not a wildlife survey tool.
 
